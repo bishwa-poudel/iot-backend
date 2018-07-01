@@ -59,7 +59,7 @@ module.exports = {
       var previous = page!=1 ? `/users?page=${page-1}&limit=${limit}` : null
       const next = page != totalPages ? `/users?page=${page + 1}&limit=${limit}` : null
       const meta = {totalPages, previous, next}
-      if(!users){
+      if(users.length == 0){
         return ResponseService.json(404, res, 'No user exists')
       }
       return ResponseService.json(200, res, 'Users found successfully', users, meta)
