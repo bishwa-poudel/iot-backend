@@ -2,7 +2,7 @@
  * ResponseService
  * 
  * @description :: Defines the standard format of response
- * @author :: https://github.com/beingbishwa
+ * @author      :: https://github.com/beingbishwa
  */
 
 module.exports = {  
