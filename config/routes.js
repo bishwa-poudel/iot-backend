@@ -30,13 +30,20 @@ module.exports.routes = {
   // home route
   'GET /': 'HomeController.index',
 
-  // user route
+  // user routes
   'POST /users': 'UserController.create',
   'GET /users': 'UserController.findAll',
   'GET /users/:id': 'UserController.findOne',
   'PUT /users/:id': 'UserController.update',
   'DELETE /users/:id': 'UserController.delete',
 
+  // device routes
+  'POST /devices': 'DeviceController.create',
+  'GET /devices': 'DeviceController.findAll',
+  'GET /devices/:id': 'DeviceController.findOne',
+  'PUT /devices/:id': 'DeviceController.update',
+  'DELETE /devices/:id': 'DeviceController.delete',
+  
   
 
 
