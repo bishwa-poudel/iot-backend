@@ -26,8 +26,18 @@ module.exports.routes = {
   //  ╔═╗╔═╗╦  ╔═╗╔╗╔╔╦╗╔═╗╔═╗╦╔╗╔╔╦╗╔═╗
   //  ╠═╣╠═╝║  ║╣ ║║║ ║║╠═╝║ ║║║║║ ║ ╚═╗
   //  ╩ ╩╩  ╩  ╚═╝╝╚╝═╩╝╩  ╚═╝╩╝╚╝ ╩ ╚═╝
-  'GET /user': 'UserController.test',
-  'GET /': 'HomeController.index'
+
+  // home route
+  'GET /': 'HomeController.index',
+
+  // user route
+  'POST /users': 'UserController.create',
+  'GET /users': 'UserController.findAll',
+  'GET /users/:id': 'UserController.findOne',
+  'UPDATE /users/:id': 'UserController.update',
+  'DELETE /user/:id': 'UserController.delete',
+  
+  
 
 
   //  ╦ ╦╔═╗╔╗ ╦ ╦╔═╗╔═╗╦╔═╔═╗
