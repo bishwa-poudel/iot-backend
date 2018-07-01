@@ -26,14 +26,37 @@ module.exports = {
    * `UserController.findOne()`
    */
   findOne: async function (req, res) {
-    
+    // get id
+    const id = req.params.id
+    if(!id){
+      return ResponseService.json(400, res, 'Missing parameter: id')
+    }
+    // find user
+    try {
+      const user = await User.findOne({id})
+      console.log(user)
+      if(!user){
+        return ResponseService.json(404, res, 'User not found')
+      }
+      return ResponseService.json(200, res, 'User found successfully', user)
+    } catch (error) {
+      return res.json(err)
+    }
   },
 
   /**
    * `UserController.findAll()`
    */
   findAll: async function (req, res) {
-    
+    try {
+      const users = await User.find()
+      if(!users){
+        return ResponseService.json(404, res, 'No user exists')
+      }
+      return ResponseService.json(200, res, 'Users found successfully', users)
+    } catch (error) {
+      return res.json(err)
+    }
   },
 
   /**
