@@ -18,9 +18,10 @@ module.exports = {
       required: true,
     },
     email: {
-      type: 'email',
+      type: 'string',
       required: true,
       unique: true,
+      isEmail: true
     },
     password: {
       type: 'string',
@@ -31,7 +32,7 @@ module.exports = {
     // user_level 1 means normal user
     user_level: {
       type: 'number',
-      in: [0,1],
+      isIn: [0,1],
       defaultsTo: 1
     }
 
