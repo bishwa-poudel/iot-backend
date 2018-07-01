@@ -48,12 +48,22 @@ module.exports = {
    * `UserController.findAll()`
    */
   findAll: async function (req, res) {
+    let limit = parseInt(req.query.limit) || 3
+    let totalPages = Math.ceil(await User.count()/limit)
+    let page = req.query.page ? parseInt(req.query.page) : 1
+    if(req.query.page > totalPages) {
+      return ResponseService.json(404, res, 'Page number exceeded')
+    }
     try {
-      const users = await User.find()
+      const users = await User.find({limit, skip: limit*(page-1)})
+      const currentUrl = `/users?page=${page}&limit=${limit}`
+      var previous = page!=1 ? `/users?page=${page-1}&limit=${limit}` : null
+      const next = page != totalPages ? `/users?page=${page + 1}&limit=${limit}` : null
+      const meta = {totalPages, currentUrl, previous, next}
       if(!users){
         return ResponseService.json(404, res, 'No user exists')
       }
-      return ResponseService.json(200, res, 'Users found successfully', users)
+      return ResponseService.json(200, res, 'Users found successfully', users, meta)
     } catch (error) {
       return res.json(err)
     }
