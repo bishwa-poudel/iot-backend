@@ -34,9 +34,9 @@ module.exports.routes = {
   'POST /users': 'UserController.create',
   'GET /users': 'UserController.findAll',
   'GET /users/:id': 'UserController.findOne',
-  'UPDATE /users/:id': 'UserController.update',
-  'DELETE /user/:id': 'UserController.delete',
-  
+  'PUT /users/:id': 'UserController.update',
+  'DELETE /users/:id': 'UserController.delete',
+
   
 
 

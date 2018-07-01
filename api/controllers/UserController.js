@@ -6,12 +6,12 @@
  * @author      :: https://github.com/beingbishwa
  */
 
+const allowedParameters = ["name", "email", "password", "user_level"]
 module.exports = {
   /**
    * `UserController.create()`
    */
   create: async function(req, res) {
-    const allowedParameters = ["name", "email", "password", "user_level"]
     // pick required fields
     const data = _.pick(req.body, allowedParameters)
     try{
@@ -56,10 +56,9 @@ module.exports = {
     }
     try {
       const users = await User.find({limit, skip: limit*(page-1)})
-      const currentUrl = `/users?page=${page}&limit=${limit}`
       var previous = page!=1 ? `/users?page=${page-1}&limit=${limit}` : null
       const next = page != totalPages ? `/users?page=${page + 1}&limit=${limit}` : null
-      const meta = {totalPages, currentUrl, previous, next}
+      const meta = {totalPages, previous, next}
       if(!users){
         return ResponseService.json(404, res, 'No user exists')
       }
@@ -73,14 +72,44 @@ module.exports = {
    * `UserController.update()`
    */
   update: async function (req, res) {
-    
+    // get id
+    const id = req.params.id
+    if(!id){
+      return ResponseService.json(400, res, 'Missing parameter: id')
+    }
+    // get data
+    const data = _.pick(req.body, allowedParameters)
+    // update data
+    try{
+      if(await User.count({id})){
+        const user = await User.update({id}, data).fetch()
+        return ResponseService.json(200, res, 'User updated successfully', user)
+      }
+      return ResponseService.json(404, res, 'User not found')
+    }catch(err){
+      return res.json(err)
+    }
   },
 
   /**
    * `UserController.delete()`
    */
   delete: async function (req, res) {
-    
+    // get id
+    const id = req.params.id
+    if(!id){
+      return ResponseService.json(400, res, 'Missing parameter: id')
+    }
+    // delete user
+    try{
+      if(await User.count({id})){
+        const user = await User.destroy({id}).fetch()
+        return ResponseService.json(200, res, 'User removed successfully', user)
+      }
+      return ResponseService.json(404, res, 'User not found')
+    }catch(err){
+      return res.json(err)
+    }
   },
   
   test: (req, res) => {
