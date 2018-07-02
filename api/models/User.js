@@ -34,7 +34,7 @@ module.exports = {
       type: 'number',
       isIn: [0,1],
       defaultsTo: 1
-    }
+    },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
@@ -45,6 +45,11 @@ module.exports = {
     //  ╠═╣╚═╗╚═╗║ ║║  ║╠═╣ ║ ║║ ║║║║╚═╗
     //  ╩ ╩╚═╝╚═╝╚═╝╚═╝╩╩ ╩ ╩ ╩╚═╝╝╚╝╚═╝
 
+    // a user can have many reservations
+    reservations: {
+      collection: 'reservation',
+      via: '_user'
+    }
   },
 
 };
