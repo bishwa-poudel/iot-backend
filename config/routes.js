@@ -44,6 +44,13 @@ module.exports.routes = {
   'PUT /devices/:id': 'DeviceController.update',
   'DELETE /devices/:id': 'DeviceController.delete',
   
+  // reservation routes
+  'POST /devices/:id/reserve': 'ReservationController.create',
+  'GET /devices/:id/reservations': 'ReservationController.findAllForOne',
+  'GET /reservations' : 'ReservationController.findAll',
+  'GET /reservations/:resid': 'ReservationController.findOne',
+  'PUT /reservations/:id': 'ReservationController.update',
+  'DELETE /reservations/:id': 'ReservationController.delete',
   
 
 
