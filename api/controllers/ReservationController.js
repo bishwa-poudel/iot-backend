@@ -46,7 +46,7 @@ module.exports = {
       if(await Device.count({id:deviceid}) == 0){
         return ResponseService.json(400, res, 'No such device exists')
       }
-    } catch (error) {
+    } catch (err) {
       return ResponseService.json(500, res, 'Internal Server Error') 
     }
 
@@ -66,19 +66,33 @@ module.exports = {
     try {
       const reservation = await Reservation.create(data).fetch()
       return ResponseService.json(201, res, 'Device reserved successfully', reservation)
-    } catch (error) {
-      res.json(error)
+    } catch (err) {
+      res.json(err)
     }
   },
 
   /**
    * `ReservationController.findAllForOne()`
    * @description :: Get all reservations for a device
+   * @route       :: GET /devices/:id/reservations
    */
   findAllForOne: async function (req, res) {
-    return res.json({
-      todo: 'findAllForOne() is not implemented yet!'
-    });
+    // get device id
+    const id = req.params.id
+    if(!id){
+      return ResponseService.json(400, res, 'Missing parameter: device-id')
+    }
+
+    // get reservations for device
+    try {
+      const reservations = await Reservation.find({_device: id})
+      if(reservations.length == 0){
+        return ResponseService.json(200, res, 'No reservations yet for the device')  
+      }
+      return ResponseService.json(200, res, 'Reservations found successfully', reservations)
+    } catch (err) {
+      return res.json(err)
+    }
   },
 
   /**
@@ -86,19 +100,37 @@ module.exports = {
    * @description :: Get a particular reservation
    */
   findOne: async function (req, res) {
-    return res.json({
-      todo: 'findOne() is not implemented yet!'
-    });
+    // get id
+    const id = req.params.id
+    if(!id){
+      return ResponseService.json(400, res, 'Missing parameter: device-id')
+    }
+    // find reservation
+    try {
+      const reservation = await Reservation.findOne({id})
+      if(!reservation){
+        return ResponseService.json(404, res, 'Reservation not found')
+      }
+      return ResponseService.json(200, res, 'Reservation found successfully', reservation)
+    } catch (err) {
+      return res.json(err)
+    }
   },
 
   /**
    * `ReservationController.findAll()`
-   * @description :: Get all reservations (admin will get all reservations | User will get his reservations)
+   * @description :: Get all reservations of a user
    */
   findAll: async function (req, res) {
-    return res.json({
-      todo: 'findall() is not implemented yet!'
-    });
+    try{
+      const reservations = await Reservation.find()
+      if(reservations.length == 0){
+        return ResponseService.json(200, res, 'No reservations by this user')
+      }
+      return ResponseService.json(200, res, 'Reservations found successfully', reservations)
+    }catch(err){
+      return res.json(err)
+    }
   },
 
   /**
