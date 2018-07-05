@@ -98,6 +98,7 @@ module.exports = {
   /**
    * `ReservationController.findOne()`
    * @description :: Get a particular reservation
+   * @route       :: GET /reservations/:id
    */
   findOne: async function (req, res) {
     // get id
@@ -120,15 +121,25 @@ module.exports = {
   /**
    * `ReservationController.findAll()`
    * @description :: Get all reservations of a user
+   * @route       :: GET /reservations
    */
   findAll: async function (req, res) {
-    try{
-      const reservations = await Reservation.find()
+    let limit = parseInt(req.query.limit) || 3
+    let totalPages = Math.ceil(await Reservation.count()/limit)
+    let page = req.query.page ? parseInt(req.query.page) : 1
+    if(req.query.page > totalPages) {
+      return ResponseService.json(404, res, 'Page number exceeded')
+    }
+    try {
+      const reservations = await Reservation.find({limit, skip: limit*(page-1)})
+      var previous = page!=1 ? `/reservations?page=${page-1}&limit=${limit}` : null
+      const next = page != totalPages ? `/reservations?page=${page + 1}&limit=${limit}` : null
+      const meta = {totalPages, previous, next}
       if(reservations.length == 0){
-        return ResponseService.json(200, res, 'No reservations by this user')
+        return ResponseService.json(404, res, 'No reservations done')
       }
-      return ResponseService.json(200, res, 'Reservations found successfully', reservations)
-    }catch(err){
+      return ResponseService.json(200, res, 'Reservations found successfully', reservations, meta)
+    } catch (error) {
       return res.json(err)
     }
   },
@@ -136,21 +147,49 @@ module.exports = {
   /**
    * `ReservationController.update()`
    * @description :: Update a reservation
+   * @route       :: PUT /reservations/:id
    */
   update: async function (req, res) {
-    return res.json({
-      todo: 'update() is not implemented yet!'
-    });
+    // get id
+    const id = req.params.id
+    if(!id){
+      return ResponseService.json(400, res, 'Missing parameter: id')
+    }
+    // get data
+    const data = _.pick(req.body, allowedParameters)
+    // update data
+    try{
+      if(await Reservation.count({id})){
+        const reservation = await Reservation.update({id}, data).fetch()
+        return ResponseService.json(200, res, 'Reservation rescheduled successfully', reservation)
+      }
+      return ResponseService.json(404, res, 'Reservation not found')
+    }catch(err){
+      return res.json(err)
+    }
   },
 
   /**
    * `ReservationController.delete()`
    * @description :: Delete a reservation
+   * @route       :: DELETE /reservations/:id
    */
   delete: async function (req, res) {
-    return res.json({
-      todo: 'delete() is not implemented yet!'
-    });
+    // get id
+    const id = req.params.id
+    if(!id){
+      return ResponseService.json(400, res, 'Missing parameter: id')
+    }
+    // delete reservation
+    try{
+      if(await Reservation.count({id})){
+        const reservation = await Reservation.destroy({id}).fetch()
+        return ResponseService.json(200, res, 'Reservation removed successfully', reservation)
+      }
+      return ResponseService.json(404, res, 'Reservation doesn\'t exist')
+    }catch(err){
+      return res.json(err)
+    }
   }
 
 };
