@@ -39,7 +39,7 @@ module.exports = {
         return ResponseService.json(404, res, 'User not found')
       }
       return ResponseService.json(200, res, 'User found successfully', user)
-    } catch (error) {
+    } catch (err) {
       return res.json(err)
     }
   },
