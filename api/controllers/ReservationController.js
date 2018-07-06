@@ -30,13 +30,12 @@ const validateDate = (start, end, format="MM-DD-YYYY HH:mm:ss") => {
 // check if device is already reserved
 const isReserved = async (start, end, deviceid, resid=null) => {
   // check if there is overlap in time ranges
-  console.log(resid)
   try {
     const reservation = await Reservation.find({_device: deviceid, start_time: {'<': end}, end_time: {'>': start}})
     if(reservation.length == 0){
       return [false]
     }
-    console.log(reservation)
+
     // in case of update
     if(resid && reservation[0].id == resid){
       return [false]
