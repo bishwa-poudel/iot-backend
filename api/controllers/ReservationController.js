@@ -93,7 +93,7 @@ module.exports = {
 
   /**
    * `ReservationController.findAllForOne()`
-   * @description :: Get all reservations for a device
+   * @description :: Get all upcoming reservations for a device
    * @route       :: GET /devices/:id/reservations
    */
   findAllForOne: async function (req, res) {
@@ -103,9 +103,14 @@ module.exports = {
       return ResponseService.json(400, res, 'Missing parameter: device-id')
     }
 
+    // check if device exists
+    if(await Device.count({id}) == 0){
+      return ResponseService.json(400, res, 'Error: Device doesn\'t exist')
+    }
+
     // get reservations for device
     try {
-      const reservations = await Reservation.find({_device: id})
+      const reservations = await Reservation.find({where:{_device: id, start_time:{'>=': moment().unix()}}, sort: 'start_time ASC'})
       if(reservations.length == 0){
         return ResponseService.json(200, res, 'No reservations yet for the device')  
       }
@@ -140,7 +145,7 @@ module.exports = {
 
   /**
    * `ReservationController.findAll()`
-   * @description :: Get all reservations of a user
+   * @description :: Get all upcoming reservations of a user
    * @route       :: GET /reservations
    */
   findAll: async function (req, res) {
@@ -151,7 +156,7 @@ module.exports = {
       return ResponseService.json(404, res, 'Page number exceeded')
     }
     try {
-      const reservations = await Reservation.find({limit, skip: limit*(page-1)})
+      const reservations = await Reservation.find({where: {start_time:{'>=': moment().unix()}},sort: 'start_time ASC', limit, skip: limit*(page-1)})
       var previous = page!=1 ? `/reservations?page=${page-1}&limit=${limit}` : null
       const next = page != totalPages ? `/reservations?page=${page + 1}&limit=${limit}` : null
       const meta = {totalPages, previous, next}
