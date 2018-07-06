@@ -27,6 +27,20 @@ const validateDate = (start, end, format="MM-DD-YYYY HH:mm:ss") => {
   return [start_time.unix(), end_time.unix()]
 }
 
+// check if device is already reserved
+const isReserved = async (start, end, deviceid) => {
+  // check if there overlap in time ranges
+  try {
+    const reservation = await Reservation.find({_device: deviceid, start_time: {'<': end}, end_time: {'>': start}})
+    if(reservation.length == 0){
+      return [false]
+    }
+    return [true, reservation]
+  } catch (err) {
+    res.json(err)
+  }
+}
+
 module.exports = {
 
 
@@ -60,6 +74,12 @@ module.exports = {
       return ResponseService.json(400, res, validationResult)
     }else if(typeof(validationResult) == 'object'){
       [data.start_time, data.end_time] = validationResult
+    }
+
+    // check if device is already reserved in that time
+    const status = await isReserved(data.start_time, data.end_time, data._device)
+    if(status[0]){
+      return ResponseService.json(200, res, 'Sorry: Time period overlaps with other reservation', status[1]) 
     }
 
     // create new reservation
