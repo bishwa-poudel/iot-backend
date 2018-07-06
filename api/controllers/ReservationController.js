@@ -37,7 +37,16 @@ const isReserved = async (start, end, deviceid) => {
     }
     return [true, reservation]
   } catch (err) {
-    res.json(err)
+    throw err
+  }
+}
+
+// check if reservation time is started
+const isStarted = async id => {
+  try {
+    return Reservation.count({id, start_time: {'<=': moment().unix()}}) ?  true : false
+  } catch (err) {
+    throw  err
   }
 }
 
@@ -76,14 +85,14 @@ module.exports = {
       [data.start_time, data.end_time] = validationResult
     }
 
-    // check if device is already reserved in that time
-    const status = await isReserved(data.start_time, data.end_time, data._device)
-    if(status[0]){
-      return ResponseService.json(200, res, 'Sorry: Time period overlaps with other reservation', status[1]) 
-    }
-
-    // create new reservation
     try {
+       // check if device is already reserved in that time
+      const status = await isReserved(data.start_time, data.end_time, data._device)
+      if(status[0]){
+        return ResponseService.json(200, res, 'Sorry: Time period overlaps with other reservation', status[1]) 
+      }
+
+      // create new reservation
       const reservation = await Reservation.create(data).fetch()
       return ResponseService.json(201, res, 'Device reserved successfully', reservation)
     } catch (err) {
@@ -93,7 +102,7 @@ module.exports = {
 
   /**
    * `ReservationController.findAllForOne()`
-   * @description :: Get all upcoming reservations for a device
+   * @description :: Get all ongoing and upcoming reservations for a device
    * @route       :: GET /devices/:id/reservations
    */
   findAllForOne: async function (req, res) {
@@ -110,7 +119,7 @@ module.exports = {
 
     // get reservations for device
     try {
-      const reservations = await Reservation.find({where:{_device: id, start_time:{'>=': moment().unix()}}, sort: 'start_time ASC'})
+      const reservations = await Reservation.find({where:{_device: id, end_time:{'>=': moment().unix()}}, sort: 'start_time ASC'})
       if(reservations.length == 0){
         return ResponseService.json(200, res, 'No reservations yet for the device')  
       }
@@ -156,7 +165,7 @@ module.exports = {
       return ResponseService.json(404, res, 'Page number exceeded')
     }
     try {
-      const reservations = await Reservation.find({where: {start_time:{'>=': moment().unix()}},sort: 'start_time ASC', limit, skip: limit*(page-1)})
+      const reservations = await Reservation.find({where: {end_time:{'>=': moment().unix()}},sort: 'start_time ASC', limit, skip: limit*(page-1)})
       var previous = page!=1 ? `/reservations?page=${page-1}&limit=${limit}` : null
       const next = page != totalPages ? `/reservations?page=${page + 1}&limit=${limit}` : null
       const meta = {totalPages, previous, next}
@@ -182,9 +191,15 @@ module.exports = {
     }
     // get data
     const data = _.pick(req.body, allowedParameters)
-    // update data
+    
     try{
       if(await Reservation.count({id})){
+        // check if reservation period started
+        if(await isStarted(id)){
+          return ResponseService.json(200, res, 'Error: Time period already started. You can\'t update it now')
+        }
+
+        // update data
         const reservation = await Reservation.update({id}, data).fetch()
         return ResponseService.json(200, res, 'Reservation rescheduled successfully', reservation)
       }
