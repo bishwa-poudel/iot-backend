@@ -23,16 +23,22 @@ const validateDate = (start, end, format="MM-DD-YYYY HH:mm:ss") => {
   if(end_time.isBefore(start_time)){
     return 'Error: Start-time should be before end-time'
   }
-
+  
   return [start_time.unix(), end_time.unix()]
 }
 
 // check if device is already reserved
-const isReserved = async (start, end, deviceid) => {
-  // check if there overlap in time ranges
+const isReserved = async (start, end, deviceid, resid=null) => {
+  // check if there is overlap in time ranges
+  console.log(resid)
   try {
     const reservation = await Reservation.find({_device: deviceid, start_time: {'<': end}, end_time: {'>': start}})
     if(reservation.length == 0){
+      return [false]
+    }
+    console.log(reservation)
+    // in case of update
+    if(resid && reservation[0].id == resid){
       return [false]
     }
     return [true, reservation]
@@ -44,7 +50,7 @@ const isReserved = async (start, end, deviceid) => {
 // check if reservation time is started
 const isStarted = async id => {
   try {
-    return Reservation.count({id, start_time: {'<=': moment().unix()}}) ?  true : false
+    return await Reservation.count({id, start_time: {'<=': moment().unix()}}) ?  true : false
   } catch (err) {
     throw  err
   }
@@ -199,6 +205,20 @@ module.exports = {
           return ResponseService.json(200, res, 'Error: Time period already started. You can\'t update it now')
         }
 
+        // validate data
+        const validationResult = validateDate(data.start_time, data.end_time)
+        if(typeof(validationResult) == 'string'){
+          return ResponseService.json(400, res, validationResult)
+        }else if(typeof(validationResult) == 'object'){
+          [data.start_time, data.end_time] = validationResult
+        }
+
+        // check if device is already reserved in that time
+        const status = await isReserved(data.start_time, data.end_time, data._device, id)
+        if(status[0]){
+          return ResponseService.json(200, res, 'Sorry: Time period overlaps with other reservation', status[1]) 
+        }
+        
         // update data
         const reservation = await Reservation.update({id}, data).fetch()
         return ResponseService.json(200, res, 'Reservation rescheduled successfully', reservation)
